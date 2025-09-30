@@ -1,40 +1,64 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather App</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://geocode.xyz https://api.open-meteo.com;">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script defer src="app.js"></script>
+</head>
 </head>
 
 <body>
-    <video autoplay muted loop id="myVideo" class="video-bg">
-        <source src="./assets/video/weather-bkg-video.mp4" type="video/mp4">
-    </video>
-    <div class="container">
+    <main>
+        <h1>Weather App (secure)</h1>
 
-        <div class="search-container">
-            <h1>Weather App</h1>
-            <input type="text" id="cityField" placeholder="Enter city name" class="input-field">
-            <button id="submitBtn" class="submit-btn">Search</button>
-        </div>
+        <label for="cityField">Città</label>
+        <input id="cityField" maxLength="50" name="city" aria-label="Città" placeholder="Inserisci una Città"/>
+        <button id="submitBtn" type="button">Cerca</button>
 
-        <div id="loading" class="loading hidden">Loading...</div>
-        
-        <div id="resultContainer" class="result-container hidden">
+        <div id="loading" class="hidden">Stiamo lavorando per voi...</div>
+        <div id="errorMessage" role="alert" aria-live="polite"></div>
+
+        <section id="resultContainer" class="hidden" aria-live="polite">
             <h2 id="cityName"></h2>
-            <div id="weatherIcon" class="weather-icon"></div>
-            <p id="temperature"></p>
-            <p id="condition"></p>
-            <p id="windSpeed"></p>
+            <div class="weather">
+                <i id="weatherIcon" class="weather-icon fas" aria-hidden="true"></i>
+                <p id="temperature"></p>
+                <p id="condition"></p>
+                <p id="windSpeed"></p>
+            </div>
+        </section>
+        
+        <video autoplay muted loop id="myVideo" class="video-bg">
+            <source src="./assets/video/weather-bkg-video.mp4" type="video/mp4">
+        </video>
+        <div class="container">
+
+           <!-- <div class="search-container">
+                <h1>Weather App</h1>
+                <input type="text" id="cityField" placeholder="Enter city name" class="input-field">
+                <button id="submitBtn" class="submit-btn">Search</button>
+            </div> 
+            <div id="loading" class="loading hidden">Loading...</div>
+        
+            <div id="resultContainer" class="result-container hidden">
+                <h2 id="cityName"></h2>
+                <div id="weatherIcon" class="weather-icon"></div>
+                <p id="temperature"></p>
+                <p id="condition"></p>
+                <p id="windSpeed"></p>
+            </div>
+
+            <span id="errorMessage" class="error-message"></span>
         </div>
 
-        <span id="errorMessage" class="error-message"></span>
-    </div>
 
-    <script src="app.js"></script>
+        <script src="app.js"></script>-->
+    </main>
 </body>
 
 </html>

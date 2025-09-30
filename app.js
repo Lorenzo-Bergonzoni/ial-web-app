@@ -55,26 +55,56 @@ function getWeatherIcon(code) {
     return weatherIcons[code] || 'fa-question';
 }
 
+// Simple client-side rate-limit and debounce (prevent rapid repeated clicks)
+let lastSearch = 0;
+const MIN_SEARCH_INTERVAL = 3000; // ms
+
 searchBtn.addEventListener("click", async () => {
-    const city = cityField.value.trim();
-    if (!city) {
-        errorMessage.textContent = "Per favore, inserisci una città.";
+    const now = Date.now();
+    if (now - lastSearch < MIN_SEARCH_INTERVAL){
+        errorMessage.textContent = "Va bene tutto, ma con meno fretta (aspetta almeno 3 secondi).";
         return;
+    }
+
+    lastSearch = now;
+
+    const rawCity = cityField.value || "";
+    const city =rawCity.trim();
+
+    // Basic input validation: only letters, spaces, hyphen and apostrophe, max 50 chars
+    const cityRegex = /^[\p{L}\s\-']{1,50}$/u;
+    if (!cityRegex.test(city)) {
+        errorMessage.textContent = "Nome città non valido. Usa solo lettere e spazi (max 50).";
+    return;
     }
 
     showLoading();
 
     try {
-        const response = await fetch(`https://geocode.xyz/${city}?json=1`);
+
+        const geoUrl = 'https://geocode.xyz/${encodeURIComponent(City)}?json=1';
+        const response = await fetch(geoUrl);
+        if (!response.ok) {
+            throw new Error(`Geocode service error: ${response.status}`);
+        }
+
         const data = await response.json();
-        if (data.error) {
-            errorMessage.textContent = "Città non trovata.";
+
+        // Validate coordinates returned by external API
+        const latt = data && data.latt;
+        const longt = data && data.longt;
+
+        if (!latt || !longt || isNaN(Number(latt)) || isNaN(Number(longt))) {
+            errorMessage.textContent = "Coordinate non valide restituite dal servizio.";
             hideLoading();
             return;
         }
 
-        const { latt, longt } = data;
-        const weatherResponse = await fetch(apiUrl.replace("{lat}", latt).replace("{lon}", longt));
+        const weatherResponse = await fetch(apiUrl.replace("{lat}", encodeURIComponent(latt)).replace("{lon}", encodeURIComponent(longt)));
+        if (!weatherResponse.ok) {
+            throw new Error(`Weather service error: ${weatherResponse.status}`);
+        }
+        
         const weatherData = await weatherResponse.json();
 
         if (!weatherData || !weatherData.current_weather) {
@@ -83,20 +113,49 @@ searchBtn.addEventListener("click", async () => {
             return;
         }
 
+
+
+
+
+       // const response = await fetch(`https://geocode.xyz/${city}?json=1`);
+       // const data = await response.json();
+       // if (data.error) {
+       //     errorMessage.textContent = "Città non trovata.";
+       //     hideLoading();
+       //     return;
+       // }
+
+        //const { latt, longt } = data;
+       // const weatherResponse = await fetch(apiUrl.replace("{lat}", latt).replace("{lon}", longt));
+       // const weatherData = await weatherResponse.json();
+
+       // if (!weatherData || !weatherData.current_weather) {
+       //     errorMessage.textContent = "Impossibile ottenere i dati meteo.";
+       //     hideLoading();
+       //     return;
+       // } 
+
         hideLoading();
         showResults();
 
         const weatherCode = weatherData.current_weather.weathercode;
         const iconClass = getWeatherIcon(weatherCode);
 
-        cityName.textContent = `${city}`;
-        weatherIcon.className = `weather-icon fas ${iconClass}`; // Set the icon
-        temperature.textContent = `Temperatura: ${weatherData.current_weather.temperature}°C`;
-        condition.textContent = `Condizione: ${weatherData.current_weather.weathercode}`;
-        windSpeed.textContent = `Velocità del vento: ${weatherData.current_weather.windspeed} km/h`;
+        cityName.textContent = city;
+        weatherIcon.className = 'weather-icon fas';
+
+        if (typeof iconClass === 'string' && /^[a-zA-Z0-9\-]+$/.test(iconClass)) {
+            weatherIcon.classList.add(iconClass);
+        }
+
+
+        temperature.textContent = `Temperatura: ${String(weatherData.current_weather.temperature)}°C`;
+        condition.textContent = `Condizione: ${String(weatherData.current_weather.weathercode)}`;
+        windSpeed.textContent = `Velocità del vento: ${String(weatherData.current_weather.windspeed)} km/h`;
         errorMessage.textContent = "";
     } catch (error) {
         hideLoading();
+        console.error(error);
         errorMessage.textContent = "Si è verificato un errore. Riprova più tardi.";
     }
 });
